@@ -442,15 +442,35 @@ async def websocket_endpoint(ws: WebSocket):
 
 # --- Static file serving (production) ---
 
+print(f"Checking for dashboard at: {DASHBOARD_DIST}")
 if DASHBOARD_DIST.exists():
+    print("Dashboard found! Mounting static files.")
     app.mount("/assets", StaticFiles(directory=str(DASHBOARD_DIST / "assets")), name="assets")
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
+        # Prevent API routes from being swallowed
+        if full_path.startswith("api/"):
+            return {"detail": "Not Found"}
+        
         file_path = DASHBOARD_DIST / full_path
         if file_path.exists() and file_path.is_file():
             return FileResponse(file_path)
-        return FileResponse(DASHBOARD_DIST / "index.html")
+        
+        index_path = DASHBOARD_DIST / "index.html"
+        if index_path.exists():
+            return FileResponse(index_path)
+        return {"detail": "Dashboard index.html missing"}
+else:
+    print("WARNING: Dashboard dist folder not found!")
+    @app.get("/")
+    async def dashboard_missing():
+        return {
+            "error": "Dashboard not found",
+            "checked_path": str(DASHBOARD_DIST),
+            "current_dir": os.getcwd(),
+            "dir_contents": os.listdir() if os.path.exists(os.getcwd()) else []
+        }
 
 if __name__ == "__main__":
     import uvicorn
