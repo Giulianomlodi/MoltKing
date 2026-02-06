@@ -1,10 +1,10 @@
 # Stage 1: Build the React frontend
 FROM node:22-slim AS builder
-WORKDIR /app
-COPY dashboard/package*.json ./dashboard/
-RUN cd dashboard && npm install
-COPY dashboard/ ./dashboard/
-RUN cd dashboard && npm run build
+WORKDIR /app/dashboard
+COPY dashboard/package*.json ./
+RUN npm install
+COPY dashboard/ ./
+RUN npm run build
 
 # Stage 2: Final image with Python and the built frontend
 FROM python:3.11-slim
