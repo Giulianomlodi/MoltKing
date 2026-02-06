@@ -1,15 +1,17 @@
-import { fileURLToPath, URL } from "node:url"
+import { fileURLToPath } from "node:url"
+import { dirname, resolve } from "node:path"
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@": resolve(__dirname, "./src"),
     },
-    extensions: [".mjs", ".js", ".mts", ".ts", ".jsx", ".tsx", ".json"],
   },
   server: {
     proxy: {

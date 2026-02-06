@@ -4,7 +4,7 @@ WORKDIR /app/dashboard
 COPY dashboard/package*.json ./
 RUN npm install
 COPY dashboard/ ./
-RUN npm run build
+RUN ls -la src/lib && npm run build
 
 # Stage 2: Final image with Python and the built frontend
 FROM python:3.11-slim
