@@ -18,7 +18,7 @@ if [ -z "$ANTHROPIC_API_KEY" ]; then
     exit 1
 fi
 
-cd /home/aedjoel/SMDev/SWARM
+cd "$(dirname "$0")"
 
 # Start the bot in background
 echo ""

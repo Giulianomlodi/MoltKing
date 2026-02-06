@@ -431,6 +431,8 @@ async def websocket_endpoint(ws: WebSocket):
                     clear_suggestion()
             except asyncio.TimeoutError:
                 pass
+            
+            await asyncio.sleep(1)
 
     except WebSocketDisconnect:
         pass

@@ -17,7 +17,7 @@ from dataclasses import dataclass
 API_URL = "https://discordia.ai/api"
 API_KEY = "ma_9f7f102690aaf89999b84cb0f431ef6b"
 TICK_RATE = 2.0
-STRATEGY_PARAMS_FILE = "/home/aedjoel/SMDev/SWARM/strategy_params.json"
+STRATEGY_PARAMS_FILE = os.path.join(os.path.dirname(__file__), "strategy_params.json")
 
 # Default strategy parameters (can be overridden by AI service)
 DEFAULT_STRATEGY = {
