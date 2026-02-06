@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+requests
+anthropic
+python-dotenv
+pydantic
+pandas
+altair
+streamlit
