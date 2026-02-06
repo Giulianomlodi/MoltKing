@@ -483,7 +483,8 @@ async def serve_dashboard_root():
         "error": "Dashboard dist folder not found",
         "tried_paths": [str(BASE_DIR / "dashboard" / "dist"), "/app/dashboard/dist", str(Path.cwd() / "dashboard" / "dist")],
         "cwd": os.getcwd(),
-        "ls_cwd": os.listdir() if Path.cwd().exists() else []
+        "ls_cwd": os.listdir() if Path.cwd().exists() else [],
+        "ls_dashboard": os.listdir("dashboard") if Path("dashboard").exists() else "dashboard folder missing"
     }
 
 @app.get("/{full_path:path}")
