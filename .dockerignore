@@ -1,0 +1,13 @@
+.git
+__pycache__
+**/node_modules
+**/dist
+.env
+botKey.md
+*.jsonl
+strategy_params.json
+human_suggestion.json
+.claude
+.agent
+.gemini
+brain
