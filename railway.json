@@ -1,0 +1,11 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "buildCommand": "cd dashboard && npm install && npm run build && cd .. && pip install -r requirements.txt"
+  },
+  "deploy": {
+    "startCommand": "python3 server.py",
+    "healthcheckPath": "/api/status",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}
