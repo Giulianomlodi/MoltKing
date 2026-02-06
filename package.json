@@ -1,0 +1,8 @@
+{
+    "name": "moltking-root",
+    "version": "1.0.0",
+    "scripts": {
+        "build": "cd dashboard && npm install && npm run build",
+        "start": "python3 server.py"
+    }
+}

@@ -447,8 +447,15 @@ if DASHBOARD_DIST.exists():
     print("Dashboard found! Mounting static files.")
     app.mount("/assets", StaticFiles(directory=str(DASHBOARD_DIST / "assets")), name="assets")
 
+    @app.get("/")
+    async def serve_index():
+        return FileResponse(DASHBOARD_DIST / "index.html")
+
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
+        if not full_path or full_path == "/":
+            return FileResponse(DASHBOARD_DIST / "index.html")
+            
         # Prevent API routes from being swallowed
         if full_path.startswith("api/"):
             return {"detail": "Not Found"}
@@ -463,13 +470,19 @@ if DASHBOARD_DIST.exists():
         return {"detail": "Dashboard index.html missing"}
 else:
     print("WARNING: Dashboard dist folder not found!")
+    
     @app.get("/")
     async def dashboard_missing():
+        # Try to find it again in case it's in a different relative path on Railway
+        alt_path = Path("/app/dashboard/dist")
+        if alt_path.exists():
+            return {"status": "found at alt path", "path": str(alt_path)}
+            
         return {
             "error": "Dashboard not found",
             "checked_path": str(DASHBOARD_DIST),
-            "current_dir": os.getcwd(),
-            "dir_contents": os.listdir() if os.path.exists(os.getcwd()) else []
+            "current_dir": str(Path.cwd()),
+            "dir_contents": os.listdir() if Path.cwd().exists() else []
         }
 
 if __name__ == "__main__":
