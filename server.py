@@ -440,50 +440,74 @@ async def websocket_endpoint(ws: WebSocket):
         if ws in active_websockets:
             active_websockets.remove(ws)
 
+# --- Debug Endpoints ---
+
+@app.get("/api/debug/fs")
+def debug_fs(path: str = "."):
+    """Lists files for debugging deployment paths."""
+    p = Path(path)
+    if not p.exists():
+        return {"error": f"Path {path} does not exist"}
+    try:
+        return {
+            "path": str(p.absolute()),
+            "contents": os.listdir(p) if p.is_dir() else "is_file",
+            "cwd": os.getcwd()
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
 # --- Static file serving (production) ---
 
-print(f"Checking for dashboard at: {DASHBOARD_DIST}")
-if DASHBOARD_DIST.exists():
-    print("Dashboard found! Mounting static files.")
-    app.mount("/assets", StaticFiles(directory=str(DASHBOARD_DIST / "assets")), name="assets")
+def find_dashboard():
+    paths = [
+        BASE_DIR / "dashboard" / "dist",
+        Path("/app/dashboard/dist"),
+        Path.cwd() / "dashboard" / "dist"
+    ]
+    for p in paths:
+        if p.exists():
+            return p
+    return None
 
-    @app.get("/")
-    async def serve_index():
-        return FileResponse(DASHBOARD_DIST / "index.html")
-
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        if not full_path or full_path == "/":
-            return FileResponse(DASHBOARD_DIST / "index.html")
-            
-        # Prevent API routes from being swallowed
-        if full_path.startswith("api/"):
-            return {"detail": "Not Found"}
-        
-        file_path = DASHBOARD_DIST / full_path
-        if file_path.exists() and file_path.is_file():
-            return FileResponse(file_path)
-        
-        index_path = DASHBOARD_DIST / "index.html"
-        if index_path.exists():
-            return FileResponse(index_path)
-        return {"detail": "Dashboard index.html missing"}
-else:
-    print("WARNING: Dashboard dist folder not found!")
+@app.get("/")
+async def serve_dashboard_root():
+    dist = find_dashboard()
+    if dist:
+        index = dist / "index.html"
+        if index.exists():
+            return FileResponse(index)
+        return {"error": "Dashboard dist exists but index.html is missing", "path": str(dist)}
     
-    @app.get("/")
-    async def dashboard_missing():
-        # Try to find it again in case it's in a different relative path on Railway
-        alt_path = Path("/app/dashboard/dist")
-        if alt_path.exists():
-            return {"status": "found at alt path", "path": str(alt_path)}
-            
-        return {
-            "error": "Dashboard not found",
-            "checked_path": str(DASHBOARD_DIST),
-            "current_dir": str(Path.cwd()),
-            "dir_contents": os.listdir() if Path.cwd().exists() else []
-        }
+    return {
+        "error": "Dashboard dist folder not found",
+        "tried_paths": [str(BASE_DIR / "dashboard" / "dist"), "/app/dashboard/dist", str(Path.cwd() / "dashboard" / "dist")],
+        "cwd": os.getcwd(),
+        "ls_cwd": os.listdir() if Path.cwd().exists() else []
+    }
+
+@app.get("/{full_path:path}")
+async def serve_dashboard_assets(full_path: str):
+    if full_path.startswith("api/"):
+        return {"detail": "Not Found"}
+    
+    dist = find_dashboard()
+    if not dist:
+        return {"error": "Dashboard dist not found"}
+        
+    file_path = dist / full_path
+    if file_path.exists() and file_path.is_file():
+        return FileResponse(file_path)
+    
+    # Static files (images, etc) fallback
+    if "." in full_path:
+        return {"detail": "Not Found"}
+        
+    # SPA fallback
+    index = dist / "index.html"
+    if index.exists():
+        return FileResponse(index)
+    return {"error": "index.html missing"}
 
 if __name__ == "__main__":
     import uvicorn
