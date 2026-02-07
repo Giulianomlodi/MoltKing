@@ -97,7 +97,7 @@ export function useWebSocket() {
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  const connect = useCallback(() => {
+  const connect = useCallback(function connect() {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
     const ws = new WebSocket(`${protocol}//${window.location.host}/ws`)
     wsRef.current = ws
