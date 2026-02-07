@@ -1,42 +1,50 @@
 {
   "behaviors": [
     {
-      "name": "core_spawn_saturation",
-      "description": "Core spawn saturation: Maintains all spawns at 85-100% capacity. Routes all available workers below threshold to transfer energy to spawns. Prioritizes empty/critical spawns (6, 2, 3). Simple, focused, unified strategy.",
+      "name": "spawn_router_simple",
+      "description": "Simple spawn router. Routes workers to critical spawns.",
       "enabled": false,
-      "installed_at": 1770429777.6126513,
+      "installed_at": 1770432656.318113,
       "ttl_seconds": 0,
       "error_count": 0
     },
     {
-      "name": "spawn_saturation_unified",
-      "description": "Unified spawn saturation: Routes all available workers with energy to critical spawns (6, 2, 3) first, then to any spawn below 100%. Ensures no spawn remains idle. Works with focus_harvest directive.",
+      "name": "production_stabilizer",
+      "description": "Stabilizes unit production by preventing over-spawning and managing worker flow without conflicts",
       "enabled": false,
-      "installed_at": 1770429931.6160278,
+      "installed_at": 1770432706.1598806,
       "ttl_seconds": 0,
       "error_count": 0
     },
     {
-      "name": "unified_spawn_fill",
-      "description": "Unified spawn fill v1: Routes all workers with energy \u226570% threshold to the lowest-energy spawn first. Ensures all spawns maintain 800+ energy for continuous production. Simple, non-overlapping, permanent.",
+      "name": "spawn_saturation_clean",
+      "description": "Clean spawn saturation. Routes workers with sufficient energy to nearest critical spawn in priority order (6\u21922\u21923\u21921\u21924\u21925). Uses simple greedy distance logic.",
       "enabled": false,
-      "installed_at": 1770430021.6578443,
+      "installed_at": 1770432810.2211854,
       "ttl_seconds": 0,
       "error_count": 0
     },
     {
-      "name": "spawn_saturation_v2_clean",
-      "description": "Clean spawn saturation: Routes all workers with sufficient energy to critical/empty spawns first, then fills remaining spawns. Single unified behavior to replace directive chaos.",
+      "name": "spawn_fill_manager",
+      "description": "Clean spawn filler. Routes workers with energy >= threshold to fill spawns by priority (6\u21922\u21923\u21921\u21924\u21925 to 1000 capacity). Simple greedy distance-based routing.",
       "enabled": false,
-      "installed_at": 1770430042.3018277,
+      "installed_at": 1770432963.1387703,
       "ttl_seconds": 0,
       "error_count": 0
     },
     {
-      "name": "spawn_crisis_handler",
-      "description": "Emergency spawn fill: Routes all workers with >60% energy to emptiest spawns first. Ensures spawn 6 recovery. Simple, non-overlapping, final arbiter of harvest logic.",
+      "name": "aggressive_directive_cleanup",
+      "description": "Aggressively removes old harvest directives, keeping only the most recent canonical one to prevent stack pollution.",
+      "enabled": false,
+      "installed_at": 1770432968.8637033,
+      "ttl_seconds": 0,
+      "error_count": 0
+    },
+    {
+      "name": "spawn_saturation_atomic",
+      "description": "Atomic spawn saturation. Workers with energy>=50% route to nearest critical spawn (6\u21922\u21923\u21921\u21924\u21925) to fill to 1000. Simple, conflict-free.",
       "enabled": true,
-      "installed_at": 1770430319.1532228,
+      "installed_at": 1770433025.9519029,
       "ttl_seconds": 0,
       "error_count": 0
     }

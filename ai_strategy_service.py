@@ -75,11 +75,16 @@ def load_llm_config() -> dict:
     if LLM_CONFIG_PATH.exists():
         try:
             cfg = json.loads(LLM_CONFIG_PATH.read_text())
-            provider = cfg.get("provider", "anthropic")
-            model = cfg.get("model", "claude-haiku-4-5-20251001")
+            provider = cfg.get("provider", "nvidia")
+            model = cfg.get("model", "moonshotai/kimi-k2.5")
             api_key = cfg.get("api_key", "")
             if not api_key:
-                api_key = os.environ.get("ANTHROPIC_API_KEY", "") or os.environ.get("LLM_API_KEY", "")
+                if provider == "nvidia":
+                    api_key = os.environ.get("KIMI_API_KEY", "") or os.environ.get("LLM_API_KEY", "")
+                elif provider == "anthropic":
+                    api_key = os.environ.get("ANTHROPIC_API_KEY", "") or os.environ.get("LLM_API_KEY", "")
+                else:
+                    api_key = os.environ.get("LLM_API_KEY", "")
             return {
                 "provider": provider,
                 "model": model,
@@ -88,9 +93,9 @@ def load_llm_config() -> dict:
         except (json.JSONDecodeError, OSError):
             pass
     return {
-        "provider": "anthropic",
-        "model": "claude-haiku-4-5-20251001",
-        "api_key": os.environ.get("ANTHROPIC_API_KEY", ""),
+        "provider": "nvidia",
+        "model": "moonshotai/kimi-k2.5",
+        "api_key": os.environ.get("KIMI_API_KEY", ""),
     }
 
 
@@ -983,12 +988,16 @@ After your analysis and any tool calls, you MUST conclude your final response wi
 class AIStrategyAdvisor:
     """Uses an LLM to reason about game state and take actions via tools."""
 
-    def __init__(self, provider: str = "anthropic", model: str = "claude-haiku-4-5-20251001", api_key: str = ""):
+    def __init__(self, provider: str = "nvidia", model: str = "moonshotai/kimi-k2.5", api_key: str = ""):
         if not api_key:
             raise ValueError("API key required — configure in LLM Settings")
         self.provider = provider
         self.model = model
-        if provider == "openai":
+        if provider == "nvidia":
+            from openai import OpenAI
+            self.openai_client = OpenAI(api_key=api_key, base_url="https://integrate.api.nvidia.com/v1")
+            self.anthropic_client = None
+        elif provider == "openai":
             from openai import OpenAI
             self.openai_client = OpenAI(api_key=api_key)
             self.anthropic_client = None
@@ -1142,13 +1151,18 @@ Respond with ONLY the JSON, no other text."""
         )
 
         try:
+            extra_body = {}
+            if self.provider == "nvidia":
+                extra_body = {"chat_template_kwargs": {"thinking": True}}
+
             response = self.openai_client.chat.completions.create(
                 model=self.model,
-                max_tokens=1024,
+                max_tokens=16384 if self.provider == "nvidia" else 1024,
                 messages=[
                     {"role": "system", "content": system_msg},
                     {"role": "user", "content": prompt},
                 ],
+                extra_body=extra_body if extra_body else None
             )
             content = response.choices[0].message.content.strip()
             if "```json" in content:

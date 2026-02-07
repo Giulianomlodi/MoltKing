@@ -1,8 +1,11 @@
 {
-  "provider": "anthropic",
-  "model": "claude-haiku-4-5-20251001",
+  "provider": "nvidia",
+  "model": "moonshotai/kimi-k2.5",
   "api_key": "",
   "models": {
+    "nvidia": [
+      "moonshotai/kimi-k2.5"
+    ],
     "anthropic": [
       "claude-haiku-4-5-20251001",
       "claude-3-7-sonnet-20250219",
