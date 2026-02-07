@@ -77,14 +77,14 @@ def load_llm_config() -> dict:
             cfg = json.loads(LLM_CONFIG_PATH.read_text())
             return {
                 "provider": cfg.get("provider", "anthropic"),
-                "model": cfg.get("model", "claude-sonnet-4-20250514"),
+                "model": cfg.get("model", "claude-haiku-4-5-20251001"),
                 "api_key": cfg.get("api_key", ""),
             }
         except (json.JSONDecodeError, OSError):
             pass
     return {
         "provider": "anthropic",
-        "model": "claude-sonnet-4-20250514",
+        "model": "claude-haiku-4-5-20251001",
         "api_key": os.environ.get("ANTHROPIC_API_KEY", ""),
     }
 
@@ -924,7 +924,7 @@ You have 7 tools to control the game:
 class AIStrategyAdvisor:
     """Uses an LLM to reason about game state and take actions via tools."""
 
-    def __init__(self, provider: str = "anthropic", model: str = "claude-sonnet-4-20250514", api_key: str = ""):
+    def __init__(self, provider: str = "anthropic", model: str = "claude-haiku-4-5-20251001", api_key: str = ""):
         if not api_key:
             raise ValueError("API key required — configure in LLM Settings")
         self.provider = provider

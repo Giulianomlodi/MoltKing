@@ -1,13 +1,15 @@
 {
   "provider": "anthropic",
-  "model": "claude-opus-4-20250514",
+  "model": "claude-haiku-4-5-20251001",
   "api_key": "",
   "models": {
     "anthropic": [
+      "claude-haiku-4-5-20251001",
+      "claude-3-7-sonnet-20250219",
       "claude-sonnet-4-5-20250929",
       "claude-sonnet-4-20250514",
       "claude-opus-4-20250514",
-      "claude-haiku-4-20250414"
+      "claude-3-5-haiku-20241022"
     ],
     "openai": [
       "gpt-4o",

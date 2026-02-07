@@ -35,14 +35,16 @@ DASHBOARD_DIST = BASE_DIR / "dashboard" / "dist"
 
 DEFAULT_LLM_CONFIG = {
     "provider": "anthropic",
-    "model": "claude-sonnet-4-20250514",
+    "model": "claude-haiku-4-5-20251001",
     "api_key": "",
     "models": {
         "anthropic": [
+            "claude-haiku-4-5-20251001",
+            "claude-3-7-sonnet-20250219",
             "claude-sonnet-4-5-20250929",
             "claude-sonnet-4-20250514",
             "claude-opus-4-20250514",
-            "claude-haiku-4-20250414",
+            "claude-3-5-haiku-20241022",
         ],
         "openai": ["gpt-4o", "gpt-4o-mini", "o3-mini"],
     },
@@ -166,7 +168,7 @@ class ProcessManager:
             return {"success": False, "error": "No API key configured — open LLM Settings"}
         env = os.environ.copy()
         env["LLM_PROVIDER"] = cfg.get("provider", "anthropic")
-        env["LLM_MODEL"] = cfg.get("model", "claude-sonnet-4-20250514")
+        env["LLM_MODEL"] = cfg.get("model", "claude-haiku-4-5-20251001")
         env["LLM_API_KEY"] = api_key
         self.ai_proc = subprocess.Popen(
             [sys.executable, str(BASE_DIR / "ai_strategy_service.py")],
@@ -269,7 +271,7 @@ def get_llm_config():
     cfg = load_llm_config()
     return {
         "provider": cfg.get("provider", "anthropic"),
-        "model": cfg.get("model", "claude-sonnet-4-20250514"),
+        "model": cfg.get("model", "claude-haiku-4-5-20251001"),
         "keyHint": redact_key(cfg.get("api_key", "")),
         "hasKey": bool(cfg.get("api_key")),
         "models": cfg.get("models", DEFAULT_LLM_CONFIG["models"]),

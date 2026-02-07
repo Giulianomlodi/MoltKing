@@ -1,15 +1,20 @@
 def behavior(state, actions, strategy, processed):
-    # Find low energy spawns and high energy sources
-    low_energy_spawns = [i for i, energy in enumerate(state['structures']['spawn_energies']) if energy < 500]
-    high_energy_workers = [worker for worker in state['units']['workers'] if worker['energy'] > 500]
+    spawns = state.structures['spawns']
+    spawn_energies = state.structures['spawn_energies']
     
-    # Prioritize transferring energy to low-energy spawns
-    for spawn_index in low_energy_spawns:
-        for worker in high_energy_workers:
-            if worker['id'] not in processed:
-                actions.append({
-                    'action_type': 'transfer',
-                    'unit_id': worker['id'],
-                    'target_id': state['structures']['spawns'][spawn_index]
-                })
-                processed.add(worker['id'])
+    # Find spawns that need energy
+    low_energy_spawns = [i for i, energy in enumerate(spawn_energies) if energy < 800]
+    
+    if low_energy_spawns:
+        workers_carrying_energy = [w for w in state.units['workers'] if w.carrying_energy > 0]
+        
+        for spawn_index in low_energy_spawns:
+            for worker in workers_carrying_energy:
+                if worker.id not in processed:
+                    actions.append({
+                        'action': 'transfer',
+                        'unitId': worker.id,
+                        'targetId': spawns[spawn_index].id
+                    })
+                    processed.add(worker.id)
+                    break

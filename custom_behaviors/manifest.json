@@ -3,9 +3,65 @@
     {
       "name": "spawn_energy_balancer",
       "description": "Dynamically balance energy across spawns",
-      "enabled": true,
-      "installed_at": 1770423838.773835,
+      "enabled": false,
+      "installed_at": 1770424329.5976865,
       "ttl_seconds": 300,
+      "error_count": 0
+    },
+    {
+      "name": "spawn_priority_filler",
+      "description": "Prioritizes filling empty spawns with available worker energy",
+      "enabled": false,
+      "installed_at": 1770428504.0164845,
+      "ttl_seconds": 0,
+      "error_count": 0
+    },
+    {
+      "name": "aggressive_spawn_filler",
+      "description": "Aggressively prioritizes keeping ALL spawns at maximum energy capacity",
+      "enabled": false,
+      "installed_at": 1770428571.0194542,
+      "ttl_seconds": 0,
+      "error_count": 0
+    },
+    {
+      "name": "critical_spawn_filler",
+      "description": "Urgently fills spawns below 100 energy with extreme priority",
+      "enabled": false,
+      "installed_at": 1770428642.8581743,
+      "ttl_seconds": 300,
+      "error_count": 0
+    },
+    {
+      "name": "ultra_spawn_filler",
+      "description": "Ultra-aggressive spawn filling that overrides all other worker tasks when any spawn is below 900 energy",
+      "enabled": false,
+      "installed_at": 1770428725.4679916,
+      "ttl_seconds": 0,
+      "error_count": 0
+    },
+    {
+      "name": "maximum_spawn_saturation",
+      "description": "Ensures all spawns are kept at maximum energy capacity at all times, prioritizing empty spawns",
+      "enabled": false,
+      "installed_at": 1770429057.2735672,
+      "ttl_seconds": 0,
+      "error_count": 0
+    },
+    {
+      "name": "simple_spawn_guardian",
+      "description": "Maintains spawns at 80%+ capacity without obsessive behavior. Allows workers freedom for other tasks.",
+      "enabled": false,
+      "installed_at": 1770429104.9665203,
+      "ttl_seconds": 0,
+      "error_count": 0
+    },
+    {
+      "name": "critical_spawn_fill",
+      "description": "Critical spawn filler: routes ALL available workers to priority fill spawns below 500 energy, especially spawn 6 (0 energy). Overrides normal harvest pattern.",
+      "enabled": true,
+      "installed_at": 1770429198.7598083,
+      "ttl_seconds": 0,
       "error_count": 0
     }
   ]

@@ -1,9 +1,16 @@
 {
   "unit_ids": [
-    "w186",
-    "w187",
-    "w185"
+    "worker_112",
+    "worker_106",
+    "worker_120",
+    "worker_102",
+    "worker_114",
+    "worker_104",
+    "worker_116",
+    "worker_110",
+    "worker_108",
+    "worker_118"
   ],
-  "tick": 185899,
-  "expires_tick": 185901
+  "tick": 188797,
+  "expires_tick": 188799
 }
