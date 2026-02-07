@@ -34,10 +34,11 @@ HUMAN_SUGGESTION_PATH = BASE_DIR / "human_suggestion.json"
 DASHBOARD_DIST = BASE_DIR / "dashboard" / "dist"
 
 DEFAULT_LLM_CONFIG = {
-    "provider": "anthropic",
-    "model": "claude-haiku-4-5-20251001",
+    "provider": "nvidia",
+    "model": "moonshotai/kimi-k2.5",
     "api_key": "",
     "models": {
+        "nvidia": ["moonshotai/kimi-k2.5"],
         "anthropic": [
             "claude-haiku-4-5-20251001",
             "claude-3-7-sonnet-20250219",
@@ -91,9 +92,12 @@ def load_llm_config() -> dict:
     cfg["models"] = DEFAULT_LLM_CONFIG["models"]
     # Fall back to env var when no key saved
     if not cfg.get("api_key"):
-        env_key = os.environ.get("ANTHROPIC_API_KEY", "")
-        if env_key:
-            cfg["api_key"] = env_key
+        if cfg.get("provider") == "nvidia":
+            cfg["api_key"] = os.environ.get("KIMI_API_KEY", "") or os.environ.get("LLM_API_KEY", "")
+        elif cfg.get("provider") == "anthropic":
+            cfg["api_key"] = os.environ.get("ANTHROPIC_API_KEY", "") or os.environ.get("LLM_API_KEY", "")
+        else:
+            cfg["api_key"] = os.environ.get("LLM_API_KEY", "")
     return cfg
 
 
@@ -167,8 +171,8 @@ class ProcessManager:
         if not api_key:
             return {"success": False, "error": "No API key configured — open LLM Settings"}
         env = os.environ.copy()
-        env["LLM_PROVIDER"] = cfg.get("provider", "anthropic")
-        env["LLM_MODEL"] = cfg.get("model", "claude-haiku-4-5-20251001")
+        env["LLM_PROVIDER"] = cfg.get("provider", "nvidia")
+        env["LLM_MODEL"] = cfg.get("model", "moonshotai/kimi-k2.5")
         env["LLM_API_KEY"] = api_key
         self.ai_proc = subprocess.Popen(
             [sys.executable, str(BASE_DIR / "ai_strategy_service.py")],
