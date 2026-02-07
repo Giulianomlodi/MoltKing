@@ -1,41 +1,6 @@
 {
   "directives": [
     {
-      "id": "d_188897_0",
-      "type": "focus_harvest",
-      "params": {
-        "target_structures": [
-          "spawn"
-        ],
-        "fill_threshold": 0.9,
-        "priority_empty_spawns": true,
-        "override_all": false
-      },
-      "priority": "high",
-      "created_tick": 188897,
-      "ttl_ticks": 500,
-      "unit_filter": {},
-      "status": "active"
-    },
-    {
-      "id": "d_188922_0",
-      "type": "focus_harvest",
-      "params": {
-        "target_structures": [
-          "spawn"
-        ],
-        "fill_threshold": 1.0,
-        "priority_empty_spawns": true,
-        "override_all": true,
-        "saturation_mode": true
-      },
-      "priority": "critical",
-      "created_tick": 188922,
-      "ttl_ticks": 500,
-      "unit_filter": {},
-      "status": "active"
-    },
-    {
       "id": "d_188971_0",
       "type": "focus_harvest",
       "params": {
@@ -367,6 +332,242 @@
         "type": "worker",
         "min_energy": 80
       },
+      "status": "active"
+    },
+    {
+      "id": "d_189307_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true,
+        "saturation_mode": true
+      },
+      "priority": "critical",
+      "created_tick": 189307,
+      "ttl_ticks": 600,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189332_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true,
+        "saturation_mode": true
+      },
+      "priority": "critical",
+      "created_tick": 189332,
+      "ttl_ticks": 600,
+      "unit_filter": {
+        "type": "worker"
+      },
+      "status": "active"
+    },
+    {
+      "id": "d_189353_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true,
+        "saturation_mode": true
+      },
+      "priority": "critical",
+      "created_tick": 189353,
+      "ttl_ticks": 600,
+      "unit_filter": {
+        "type": "worker",
+        "min_energy": 50
+      },
+      "status": "active"
+    },
+    {
+      "id": "d_189353_1",
+      "type": "defend_position",
+      "params": {
+        "target_x": 0,
+        "target_y": 0,
+        "radius": 20
+      },
+      "priority": "high",
+      "created_tick": 189353,
+      "ttl_ticks": 120,
+      "unit_filter": {
+        "type": "soldier",
+        "count": 50
+      },
+      "status": "active"
+    },
+    {
+      "id": "d_189377_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true,
+        "saturation_mode": true,
+        "description": "UNIFIED SPAWN SATURATION: Route all workers with energy \u226575% to spawns. Priority order: Spawn 6 (CRITICAL - empty) > Spawns 2,3 > Others. Fill all to 100% capacity. This is the single source of truth for harvest routing."
+      },
+      "priority": "critical",
+      "created_tick": 189377,
+      "ttl_ticks": 600,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189396_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true,
+        "saturation_mode": true,
+        "description": "SINGULAR TRUTH v1.0: Route all workers with energy \u226570% to spawns. Priority: Spawn 6 (EMPTY - CRITICAL) > Spawns 2,3 > Others. Fill all to 100% capacity. This directive SUPERSEDES all prior harvest orders."
+      },
+      "priority": "critical",
+      "created_tick": 189396,
+      "ttl_ticks": 600,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189396_1",
+      "type": "defend_position",
+      "params": {
+        "target_x": 0,
+        "target_y": 0,
+        "radius": 25
+      },
+      "priority": "high",
+      "created_tick": 189396,
+      "ttl_ticks": 100,
+      "unit_filter": {
+        "type": "soldier",
+        "min_hp": 1
+      },
+      "status": "active"
+    },
+    {
+      "id": "d_189396_2",
+      "type": "rally_soldiers",
+      "params": {
+        "target_x": 0,
+        "target_y": 0,
+        "radius": 35
+      },
+      "priority": "high",
+      "created_tick": 189396,
+      "ttl_ticks": 120,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189407_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true,
+        "saturation_mode": true,
+        "description": "SINGULAR DIRECTIVE v1: Route ALL workers to spawns. Priority: 6 (EMPTY) > 2,3 > others. Fill to 100%. TTL 1000 ticks. This is the ONLY harvest directive active."
+      },
+      "priority": "critical",
+      "created_tick": 189407,
+      "ttl_ticks": 1000,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189421_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 0.95,
+        "priority_empty_spawns": true,
+        "override_all": true,
+        "saturation_mode": true
+      },
+      "priority": "critical",
+      "created_tick": 189421,
+      "ttl_ticks": 200,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189445_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true,
+        "saturation_mode": true,
+        "description": "CLEAN DIRECTIVE: Route all workers to spawns. Priority: Spawn 6 (EMPTY) > 2,3 > others. Fill to 100%. Single source of truth."
+      },
+      "priority": "critical",
+      "created_tick": 189445,
+      "ttl_ticks": 1000,
+      "unit_filter": {},
       "status": "active"
     }
   ]

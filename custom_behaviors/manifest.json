@@ -27,8 +27,16 @@
     {
       "name": "spawn_saturation_v2_clean",
       "description": "Clean spawn saturation: Routes all workers with sufficient energy to critical/empty spawns first, then fills remaining spawns. Single unified behavior to replace directive chaos.",
-      "enabled": true,
+      "enabled": false,
       "installed_at": 1770430042.3018277,
+      "ttl_seconds": 0,
+      "error_count": 0
+    },
+    {
+      "name": "spawn_crisis_handler",
+      "description": "Emergency spawn fill: Routes all workers with >60% energy to emptiest spawns first. Ensures spawn 6 recovery. Simple, non-overlapping, final arbiter of harvest logic.",
+      "enabled": true,
+      "installed_at": 1770430319.1532228,
       "ttl_seconds": 0,
       "error_count": 0
     }
