@@ -114,31 +114,75 @@ app = FastAPI(title="MoltKing Command Center")
 
 # --- Process management ---
 
+PID_FILE = BASE_DIR / ".pids.json"
+
 class ProcessManager:
     def __init__(self):
         self.bot_proc: Optional[subprocess.Popen] = None
         self.ai_proc: Optional[subprocess.Popen] = None
         self.bot_start_time: Optional[float] = None
         self.ai_start_time: Optional[float] = None
+        self._load_pids()
 
-    def _is_alive(self, proc: Optional[subprocess.Popen]) -> bool:
-        return proc is not None and proc.poll() is None
+    def _load_pids(self):
+        """Restore process status from file if server restarted."""
+        if PID_FILE.exists():
+            try:
+                data = json.loads(PID_FILE.read_text())
+                # Note: We can only check if they are alive, we can't easily 
+                # get a Popen object back for an existing process to wait() on it,
+                # but we can check if the PID is still active and belongs to our script.
+                self.bot_start_time = data.get("bot_start_time")
+                self.ai_start_time = data.get("ai_start_time")
+                
+                bot_pid = data.get("bot_pid")
+                if bot_pid and self._check_pid_alive(bot_pid):
+                    # We create a dummy popen-like object or just store the pid
+                    self.bot_pid_v = bot_pid
+                
+                ai_pid = data.get("ai_pid")
+                if ai_pid and self._check_pid_alive(ai_pid):
+                    self.ai_pid_v = ai_pid
+            except Exception:
+                pass
+
+    def _save_pids(self):
+        data = {
+            "bot_pid": self.bot_proc.pid if self.bot_running else getattr(self, "bot_pid_v", None),
+            "bot_start_time": self.bot_start_time,
+            "ai_pid": self.ai_proc.pid if self.ai_running else getattr(self, "ai_pid_v", None),
+            "ai_start_time": self.ai_start_time,
+        }
+        PID_FILE.write_text(json.dumps(data))
+
+    def _check_pid_alive(self, pid: int) -> bool:
+        try:
+            os.kill(pid, 0)
+            return True
+        except OSError:
+            return False
+
+    def _is_alive(self, proc: Optional[subprocess.Popen], fallback_pid: str = None) -> bool:
+        if proc is not None:
+            return proc.poll() is None
+        pid = getattr(self, fallback_pid) if fallback_pid else None
+        return self._check_pid_alive(pid) if pid else False
 
     @property
     def bot_running(self) -> bool:
-        return self._is_alive(self.bot_proc)
+        return self._is_alive(self.bot_proc, "bot_pid_v")
 
     @property
     def ai_running(self) -> bool:
-        return self._is_alive(self.ai_proc)
+        return self._is_alive(self.ai_proc, "ai_pid_v")
 
     def status(self) -> dict:
         return {
             "botRunning": self.bot_running,
-            "botPid": self.bot_proc.pid if self.bot_running else None,
+            "botPid": self.bot_proc.pid if (self.bot_proc and self.bot_proc.poll() is None) else getattr(self, "bot_pid_v", None),
             "botUptime": round(time.time() - self.bot_start_time) if self.bot_running and self.bot_start_time else None,
             "aiRunning": self.ai_running,
-            "aiPid": self.ai_proc.pid if self.ai_running else None,
+            "aiPid": self.ai_proc.pid if (self.ai_proc and self.ai_proc.poll() is None) else getattr(self, "ai_pid_v", None),
             "aiUptime": round(time.time() - self.ai_start_time) if self.ai_running and self.ai_start_time else None,
         }
 
@@ -150,17 +194,31 @@ class ProcessManager:
             cwd=str(BASE_DIR),
         )
         self.bot_start_time = time.time()
+        self.bot_pid_v = self.bot_proc.pid
+        self._save_pids()
         return {"success": True, "pid": self.bot_proc.pid}
 
     def stop_bot(self) -> dict:
         if not self.bot_running:
             return {"success": False, "error": "Bot not running"}
-        self.bot_proc.send_signal(signal.SIGTERM)
-        try:
-            self.bot_proc.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            self.bot_proc.kill()
-            self.bot_proc.wait(timeout=2)
+        
+        pid = self.bot_proc.pid if (self.bot_proc and self.bot_proc.poll() is None) else getattr(self, "bot_pid_v", None)
+        if pid:
+            try:
+                os.kill(pid, signal.SIGTERM)
+                # If we have the handle, wait for it
+                if self.bot_proc and self.bot_proc.poll() is None:
+                    try:
+                        self.bot_proc.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        self.bot_proc.kill()
+            except ProcessLookupError:
+                pass
+        
+        self.bot_proc = None
+        self.bot_pid_v = None
+        self.bot_start_time = None
+        self._save_pids()
         return {"success": True}
 
     def start_ai(self) -> dict:
@@ -180,17 +238,30 @@ class ProcessManager:
             env=env,
         )
         self.ai_start_time = time.time()
+        self.ai_pid_v = self.ai_proc.pid
+        self._save_pids()
         return {"success": True, "pid": self.ai_proc.pid}
 
     def stop_ai(self) -> dict:
         if not self.ai_running:
             return {"success": False, "error": "AI service not running"}
-        self.ai_proc.send_signal(signal.SIGTERM)
-        try:
-            self.ai_proc.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            self.ai_proc.kill()
-            self.ai_proc.wait(timeout=2)
+        
+        pid = self.ai_proc.pid if (self.ai_proc and self.ai_proc.poll() is None) else getattr(self, "ai_pid_v", None)
+        if pid:
+            try:
+                os.kill(pid, signal.SIGTERM)
+                if self.ai_proc and self.ai_proc.poll() is None:
+                    try:
+                        self.ai_proc.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        self.ai_proc.kill()
+            except ProcessLookupError:
+                pass
+
+        self.ai_proc = None
+        self.ai_pid_v = None
+        self.ai_start_time = None
+        self._save_pids()
         return {"success": True}
 
 
