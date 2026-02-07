@@ -509,9 +509,10 @@ class GameAnalyzer:
 class ToolHandlers:
     """Executes tool calls from the LLM."""
 
-    def __init__(self, analyzer: GameAnalyzer, current_tick: int = 0):
+    def __init__(self, analyzer: GameAnalyzer, current_tick: int = 0, state_summary: dict = None):
         self.analyzer = analyzer
         self.current_tick = current_tick
+        self.state_summary = state_summary or {}
         self.params = self._load_params()
         self.last_chat_time = 0.0
         self.chat_cooldown = 120
@@ -521,6 +522,7 @@ class ToolHandlers:
             "direct_actions_sent": 0,
             "behaviors_installed": [],
             "active_directives": 0,
+            "scaling_adjustments": {},
         }
 
     def _load_params(self) -> StrategyParams:
@@ -571,16 +573,42 @@ class ToolHandlers:
 
     def _handle_update_strategy_params(self, inp: dict) -> dict:
         changed = {}
+        adjustments = {}
+        
+        # Empire Scaling Laws
+        spawns = self.state_summary.get("structures", {}).get("spawns", 1)
+        scaling_floors = {
+            "worker_cap": spawns * 45,
+            "soldier_cap": spawns * 40,
+            "tower_cap": spawns * 15
+        }
+
         for field in ["worker_cap", "soldier_cap", "tower_cap", "worker_harvest_threshold",
                        "soldier_patrol_distance", "spawn_energy_reserve", "priority_mode"]:
             if field in inp and inp[field] is not None:
-                setattr(self.params, field, inp[field])
-                changed[field] = inp[field]
+                val = inp[field]
+                
+                # Enforce scaling floor
+                if field in scaling_floors:
+                    floor = scaling_floors[field]
+                    if val < floor:
+                        val = floor
+                        adjustments[field] = f"Adjusted to scaling floor {floor} (Empire Scaling Law)"
+
+                setattr(self.params, field, val)
+                changed[field] = val
 
         if changed:
             atomic_write_json(STRATEGY_PARAMS_FILE, self.params.to_dict())
+            if adjustments:
+                self.cycle_log["scaling_adjustments"].update(adjustments)
 
-        return {"success": True, "changed": changed, "current": self.params.to_dict()}
+        result = {"success": True, "changed": changed, "current": self.params.to_dict()}
+        if adjustments:
+            result["note"] = "Some caps were adjusted upward to satisfy Empire Scaling Laws."
+            result["adjustments"] = adjustments
+            
+        return result
 
     # ── Tool: issue_directives ──
 
@@ -915,9 +943,13 @@ You have 7 tools to control the game:
 - Forbidden: os, subprocess, sys, open, eval, exec, dangerous imports
 - Keep behaviors focused and simple
 
-## Safety Rules for modify_code
-- Target content must be an EXACT match.
-- Be careful not to break the syntax or introduce infinite loops.
+## Empire Scaling Laws
+Your strategy caps MUST scale with your empire's size to ensure continued growth and defense.
+- **Worker Cap**: Minimum 45 workers per Spawn. (e.g., 6 spawns = 270 workers).
+- **Soldier Cap**: Minimum 40 soldiers per Spawn. (e.g., 6 spawns = 240 soldiers).
+- **Tower Cap**: Minimum 15 towers per Spawn. (e.g., 6 spawns = 90 towers).
+
+Safety floors are enforced by the system. If you request a cap below these levels, it will be automatically adjusted upward.
 
 ## Response Format
 After your analysis and any tool calls, you MUST conclude your final response with a structured JSON block containing your assessment. This is CRITICAL for the dashboard.
@@ -1343,6 +1375,7 @@ class StrategyService:
         tool_handlers = ToolHandlers(
             analyzer=self.analyzer,
             current_tick=summary.get("tick", 0),
+            state_summary=summary
         )
         tool_handlers.last_chat_time = self.last_chat_time
 
