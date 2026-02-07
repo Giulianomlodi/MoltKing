@@ -25,9 +25,9 @@ function Metric({ label, value, sub }: { label: string; value: string | number; 
 }
 
 export default function GameOverview({ state }: GameOverviewProps) {
-  const workerCap = state.params.worker_cap ?? 120
-  const soldierCap = state.params.soldier_cap ?? 100
-  const mode = state.params.priority_mode ?? "balanced"
+  const workerCap = state.params?.worker_cap ?? 120
+  const soldierCap = state.params?.soldier_cap ?? 100
+  const mode = state.params?.priority_mode ?? "balanced"
 
   return (
     <Card>
@@ -61,12 +61,11 @@ export default function GameOverview({ state }: GameOverviewProps) {
 
         <div className="mt-2 text-center">
           <span className="text-xs text-muted-foreground">Priority: </span>
-          <span className={`text-xs font-semibold ${
-            mode === "military" ? "text-red-400" :
-            mode === "economy" ? "text-emerald-400" :
-            mode === "defense" ? "text-yellow-400" :
-            "text-blue-400"
-          }`}>
+          <span className={`text-xs font-semibold ${mode === "military" ? "text-red-400" :
+              mode === "economy" ? "text-emerald-400" :
+                mode === "defense" ? "text-yellow-400" :
+                  "text-blue-400"
+            }`}>
             {mode.toUpperCase()}
           </span>
         </div>

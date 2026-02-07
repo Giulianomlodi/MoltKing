@@ -1,0 +1,67 @@
+{
+  "directives": [
+    {
+      "id": "d_186189_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 0.9
+      },
+      "priority": "high",
+      "created_tick": 186189,
+      "ttl_ticks": 50,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_186191_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0
+      },
+      "priority": "high",
+      "created_tick": 186191,
+      "ttl_ticks": 50,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_186211_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 0.9
+      },
+      "priority": "high",
+      "created_tick": 186211,
+      "ttl_ticks": 50,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_186216_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0
+      },
+      "priority": "high",
+      "created_tick": 186216,
+      "ttl_ticks": 50,
+      "unit_filter": {
+        "type": "worker",
+        "count": 50
+      },
+      "status": "active"
+    }
+  ]
+}

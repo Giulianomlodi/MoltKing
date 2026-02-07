@@ -30,7 +30,7 @@ function economyColor(status: string): string {
 }
 
 function ParamDiff({ recs }: { recs: Record<string, unknown> }) {
-  // Compare recommendations vs what might have been before
+  if (!recs || Object.keys(recs).length === 0) return null
   const fields = ["worker_cap", "soldier_cap", "tower_cap", "priority_mode", "spawn_energy_reserve"] as const
   const diffs: { key: string; val: unknown }[] = []
   for (const f of fields) {
@@ -53,14 +53,13 @@ function ParamDiff({ recs }: { recs: Record<string, unknown> }) {
 function EntryCard({ entry }: { entry: LogEntry }) {
   const a = entry.analysis
   const isFailed = a.threat_level === "unknown" || a.situation_assessment === "Analysis failed"
-  const hasChanges = Object.keys(a.recommendations).length > 0 && !isFailed
+  const hasChanges = Object.keys(a.recommendations || {}).length > 0 && !isFailed
 
   return (
-    <div className={`rounded-lg border p-3 ${
-      isFailed ? "border-muted opacity-50" :
-      hasChanges ? "border-emerald-500/50" :
-      "border-border"
-    }`}>
+    <div className={`rounded-lg border p-3 ${isFailed ? "border-muted opacity-50" :
+        hasChanges ? "border-emerald-500/50" :
+          "border-border"
+      }`}>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span className="font-mono">{entry.timestamp}</span>
         <span>Tick {entry.state.tick}</span>

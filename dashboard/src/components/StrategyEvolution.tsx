@@ -16,9 +16,9 @@ export default function StrategyEvolution({ logs }: StrategyEvolutionProps) {
   const paramData = chronological.map((e, i) => ({
     idx: i,
     tick: e.state.tick,
-    worker_cap: e.analysis.recommendations.worker_cap as number | undefined,
-    soldier_cap: e.analysis.recommendations.soldier_cap as number | undefined,
-    tower_cap: e.analysis.recommendations.tower_cap as number | undefined,
+    worker_cap: e.analysis.recommendations?.worker_cap as number | undefined,
+    soldier_cap: e.analysis.recommendations?.soldier_cap as number | undefined,
+    tower_cap: e.analysis.recommendations?.tower_cap as number | undefined,
   }))
 
   const unitData = chronological.map((e, i) => ({
@@ -39,7 +39,7 @@ export default function StrategyEvolution({ logs }: StrategyEvolutionProps) {
   const modeData = chronological.map((e, i) => ({
     idx: i,
     tick: e.state.tick,
-    mode: (e.analysis.recommendations.priority_mode as string) || "balanced",
+    mode: (e.analysis.recommendations?.priority_mode as string) || "balanced",
   }))
 
   const tickFormatter = (idx: number) => {
@@ -129,9 +129,9 @@ export default function StrategyEvolution({ logs }: StrategyEvolutionProps) {
             {modeData.map((d, i) => {
               const color =
                 d.mode === "military" ? "bg-red-500" :
-                d.mode === "economy" ? "bg-emerald-500" :
-                d.mode === "defense" ? "bg-yellow-500" :
-                "bg-blue-500"
+                  d.mode === "economy" ? "bg-emerald-500" :
+                    d.mode === "defense" ? "bg-yellow-500" :
+                      "bg-blue-500"
               return (
                 <div
                   key={i}

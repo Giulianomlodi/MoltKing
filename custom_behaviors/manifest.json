@@ -1,0 +1,12 @@
+{
+  "behaviors": [
+    {
+      "name": "spawn_energy_balancer",
+      "description": "Dynamically balance energy across spawns",
+      "enabled": true,
+      "installed_at": 1770423838.773835,
+      "ttl_seconds": 300,
+      "error_count": 0
+    }
+  ]
+}
