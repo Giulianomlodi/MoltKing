@@ -1,7 +1,24 @@
 {
   "directives": [
     {
-      "id": "d_188797_0",
+      "id": "d_188897_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 0.9,
+        "priority_empty_spawns": true,
+        "override_all": false
+      },
+      "priority": "high",
+      "created_tick": 188897,
+      "ttl_ticks": 500,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_188922_0",
       "type": "focus_harvest",
       "params": {
         "target_structures": [
@@ -10,16 +27,16 @@
         "fill_threshold": 1.0,
         "priority_empty_spawns": true,
         "override_all": true,
-        "force_fill": true
+        "saturation_mode": true
       },
       "priority": "critical",
-      "created_tick": 188797,
-      "ttl_ticks": 300,
+      "created_tick": 188922,
+      "ttl_ticks": 500,
       "unit_filter": {},
       "status": "active"
     },
     {
-      "id": "d_188872_0",
+      "id": "d_188971_0",
       "type": "focus_harvest",
       "params": {
         "target_structures": [
@@ -27,13 +44,329 @@
         ],
         "fill_threshold": 1.0,
         "priority_empty_spawns": true,
-        "critical_spawn_6": true,
+        "override_all": true,
+        "saturation_mode": true,
+        "critical_spawn_6": true
+      },
+      "priority": "critical",
+      "created_tick": 188971,
+      "ttl_ticks": 500,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_188994_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 0.95,
+        "priority_empty_spawns": true,
+        "override_all": false
+      },
+      "priority": "high",
+      "created_tick": 188994,
+      "ttl_ticks": 500,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189016_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          2,
+          3,
+          6
+        ],
         "override_all": true
       },
       "priority": "critical",
-      "created_tick": 188872,
-      "ttl_ticks": 300,
+      "created_tick": 189016,
+      "ttl_ticks": 500,
       "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189039_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2
+        ],
+        "override_all": true
+      },
+      "priority": "high",
+      "created_tick": 189039,
+      "ttl_ticks": 500,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189061_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 0.85,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6
+        ],
+        "override_all": false
+      },
+      "priority": "high",
+      "created_tick": 189061,
+      "ttl_ticks": 500,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189089_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "override_all": true,
+        "critical_spawns": [
+          2,
+          3,
+          6
+        ]
+      },
+      "priority": "critical",
+      "created_tick": 189089,
+      "ttl_ticks": 500,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189113_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          2,
+          3,
+          6
+        ],
+        "override_all": true,
+        "saturation_mode": true
+      },
+      "priority": "critical",
+      "created_tick": 189113,
+      "ttl_ticks": 600,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189133_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true,
+        "saturation_mode": true
+      },
+      "priority": "critical",
+      "created_tick": 189133,
+      "ttl_ticks": 600,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189160_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true,
+        "saturation_mode": true
+      },
+      "priority": "critical",
+      "created_tick": 189160,
+      "ttl_ticks": 600,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189186_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true
+      },
+      "priority": "critical",
+      "created_tick": 189186,
+      "ttl_ticks": 600,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189211_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true,
+        "saturation_mode": true
+      },
+      "priority": "critical",
+      "created_tick": 189211,
+      "ttl_ticks": 600,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189227_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true,
+        "saturation_mode": true,
+        "description": "UNIFIED: Keep all spawns at 100% capacity. Priority: empty/critical spawns 6,2,3. Route all available workers."
+      },
+      "priority": "critical",
+      "created_tick": 189227,
+      "ttl_ticks": 600,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189267_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "override_all": true,
+        "saturation_mode": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ]
+      },
+      "priority": "critical",
+      "created_tick": 189267,
+      "ttl_ticks": 600,
+      "unit_filter": {
+        "type": "worker"
+      },
+      "status": "active"
+    },
+    {
+      "id": "d_189280_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true,
+        "saturation_mode": true,
+        "description": "CRITICAL UNIFIED: Route ALL available workers to spawns. Priority: spawn 6 (empty) > spawns 2,3 > others. Fill all to 100%."
+      },
+      "priority": "critical",
+      "created_tick": 189280,
+      "ttl_ticks": 600,
+      "unit_filter": {},
+      "status": "active"
+    },
+    {
+      "id": "d_189283_0",
+      "type": "focus_harvest",
+      "params": {
+        "target_structures": [
+          "spawn"
+        ],
+        "fill_threshold": 1.0,
+        "priority_empty_spawns": true,
+        "critical_spawns": [
+          6,
+          2,
+          3
+        ],
+        "override_all": true,
+        "saturation_mode": true
+      },
+      "priority": "critical",
+      "created_tick": 189283,
+      "ttl_ticks": 600,
+      "unit_filter": {
+        "type": "worker",
+        "min_energy": 80
+      },
       "status": "active"
     }
   ]

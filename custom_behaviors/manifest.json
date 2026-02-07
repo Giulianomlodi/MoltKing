@@ -1,66 +1,34 @@
 {
   "behaviors": [
     {
-      "name": "spawn_energy_balancer",
-      "description": "Dynamically balance energy across spawns",
+      "name": "core_spawn_saturation",
+      "description": "Core spawn saturation: Maintains all spawns at 85-100% capacity. Routes all available workers below threshold to transfer energy to spawns. Prioritizes empty/critical spawns (6, 2, 3). Simple, focused, unified strategy.",
       "enabled": false,
-      "installed_at": 1770424329.5976865,
-      "ttl_seconds": 300,
-      "error_count": 0
-    },
-    {
-      "name": "spawn_priority_filler",
-      "description": "Prioritizes filling empty spawns with available worker energy",
-      "enabled": false,
-      "installed_at": 1770428504.0164845,
+      "installed_at": 1770429777.6126513,
       "ttl_seconds": 0,
       "error_count": 0
     },
     {
-      "name": "aggressive_spawn_filler",
-      "description": "Aggressively prioritizes keeping ALL spawns at maximum energy capacity",
+      "name": "spawn_saturation_unified",
+      "description": "Unified spawn saturation: Routes all available workers with energy to critical spawns (6, 2, 3) first, then to any spawn below 100%. Ensures no spawn remains idle. Works with focus_harvest directive.",
       "enabled": false,
-      "installed_at": 1770428571.0194542,
+      "installed_at": 1770429931.6160278,
       "ttl_seconds": 0,
       "error_count": 0
     },
     {
-      "name": "critical_spawn_filler",
-      "description": "Urgently fills spawns below 100 energy with extreme priority",
+      "name": "unified_spawn_fill",
+      "description": "Unified spawn fill v1: Routes all workers with energy \u226570% threshold to the lowest-energy spawn first. Ensures all spawns maintain 800+ energy for continuous production. Simple, non-overlapping, permanent.",
       "enabled": false,
-      "installed_at": 1770428642.8581743,
-      "ttl_seconds": 300,
-      "error_count": 0
-    },
-    {
-      "name": "ultra_spawn_filler",
-      "description": "Ultra-aggressive spawn filling that overrides all other worker tasks when any spawn is below 900 energy",
-      "enabled": false,
-      "installed_at": 1770428725.4679916,
+      "installed_at": 1770430021.6578443,
       "ttl_seconds": 0,
       "error_count": 0
     },
     {
-      "name": "maximum_spawn_saturation",
-      "description": "Ensures all spawns are kept at maximum energy capacity at all times, prioritizing empty spawns",
-      "enabled": false,
-      "installed_at": 1770429057.2735672,
-      "ttl_seconds": 0,
-      "error_count": 0
-    },
-    {
-      "name": "simple_spawn_guardian",
-      "description": "Maintains spawns at 80%+ capacity without obsessive behavior. Allows workers freedom for other tasks.",
-      "enabled": false,
-      "installed_at": 1770429104.9665203,
-      "ttl_seconds": 0,
-      "error_count": 0
-    },
-    {
-      "name": "critical_spawn_fill",
-      "description": "Critical spawn filler: routes ALL available workers to priority fill spawns below 500 energy, especially spawn 6 (0 energy). Overrides normal harvest pattern.",
+      "name": "spawn_saturation_v2_clean",
+      "description": "Clean spawn saturation: Routes all workers with sufficient energy to critical/empty spawns first, then fills remaining spawns. Single unified behavior to replace directive chaos.",
       "enabled": true,
-      "installed_at": 1770429198.7598083,
+      "installed_at": 1770430042.3018277,
       "ttl_seconds": 0,
       "error_count": 0
     }
