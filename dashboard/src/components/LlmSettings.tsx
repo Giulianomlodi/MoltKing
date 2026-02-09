@@ -38,7 +38,7 @@ export default function LlmSettings({ aiRunning }: LlmSettingsProps) {
         setShowKey(false)
         setDirty(false)
       })
-      .catch(() => {})
+      .catch(() => { })
   }, [open])
 
   const availableModels = config?.models?.[provider] ?? []
@@ -102,8 +102,11 @@ export default function LlmSettings({ aiRunning }: LlmSettingsProps) {
                 onChange={(e) => handleProviderChange(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm"
               >
-                <option value="anthropic">Anthropic</option>
-                <option value="openai">OpenAI</option>
+                {config && Object.keys(config.models).map((p) => (
+                  <option key={p} value={p}>
+                    {p === "nvidia" ? "NVIDIA" : p.charAt(0).toUpperCase() + p.slice(1)}
+                  </option>
+                ))}
               </select>
             </div>
 
