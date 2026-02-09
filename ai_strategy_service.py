@@ -998,7 +998,7 @@ class AIStrategyAdvisor:
             self.openai_client = OpenAI(
                 api_key=api_key, 
                 base_url="https://integrate.api.nvidia.com/v1",
-                timeout=45.0
+                timeout=90.0
             )
             self.anthropic_client = None
         elif provider == "openai":
@@ -1154,16 +1154,20 @@ Respond with ONLY the JSON, no other text."""
             "Analyze game state and return JSON recommendations."
         )
 
-        max_retries = 2
+        max_retries = 5
         for attempt in range(max_retries + 1):
             try:
                 extra_body = {}
                 if self.provider == "nvidia":
-                    extra_body = {"chat_template_kwargs": {"thinking": True}}
+                    extra_body = {
+                        "chat_template_kwargs": {"thinking": True},
+                        "temperature": 1.0,
+                        "top_p": 1.0
+                    }
 
                 response = self.openai_client.chat.completions.create(
                     model=self.model,
-                    max_tokens=2048 if self.provider == "nvidia" else 1024,
+                    max_tokens=16384 if self.provider == "nvidia" else 1024,
                     messages=[
                         {"role": "system", "content": system_msg},
                         {"role": "user", "content": prompt},
@@ -1183,11 +1187,16 @@ Respond with ONLY the JSON, no other text."""
                     "504" in err_str or 
                     "connection" in err_str or 
                     "network" in err_str or
-                    "rate limit" in err_str
+                    "rate limit" in err_str or
+                    "remote disconnected" in err_str
                 )
                 
                 if is_retryable and attempt < max_retries:
-                    wait_sec = 2 * (attempt + 1)
+                    # Exponential backoff: 2, 4, 8, 16, 32 seconds
+                    wait_sec = 2 ** (attempt + 1)
+                    print(f"  AI analysis attempt {attempt+1} failed ({e}), retrying in {wait_sec}s...")
+                    time.sleep(wait_sec)
+                    continue
                     print(f"  AI analysis attempt {attempt+1} failed ({e}), retrying in {wait_sec}s...")
                     time.sleep(wait_sec)
                     continue

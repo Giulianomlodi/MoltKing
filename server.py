@@ -89,17 +89,32 @@ def load_llm_config() -> dict:
             cfg = dict(DEFAULT_LLM_CONFIG)
     else:
         cfg = dict(DEFAULT_LLM_CONFIG)
+    # Ensure 'keys' dict exists
+    if "keys" not in cfg:
+        cfg["keys"] = {}
+        # Migration: if root api_key exists, move to provider bucket
+        legacy_key = cfg.pop("api_key", None)
+        if legacy_key:
+            cfg["keys"][cfg.get("provider", "anthropic")] = legacy_key
+
     # Always update models list from defaults
     cfg["models"] = DEFAULT_LLM_CONFIG["models"]
-    # Fall back to env var when no key saved
-    if not cfg.get("api_key"):
-        if cfg.get("provider") == "nvidia":
-            cfg["api_key"] = os.environ.get("KIMI_API_KEY", "") or os.environ.get("LLM_API_KEY", "")
-        elif cfg.get("provider") == "anthropic":
-            cfg["api_key"] = os.environ.get("ANTHROPIC_API_KEY", "") or os.environ.get("LLM_API_KEY", "")
+    
+    # Resolve active key for consumer convenience
+    active_provider = cfg.get("provider", "anthropic")
+    active_key = cfg["keys"].get(active_provider, "")
+    
+    # Fall back to env var if no saved key for this provider
+    if not active_key:
+        if active_provider == "nvidia":
+            active_key = os.environ.get("KIMI_API_KEY", "") or os.environ.get("LLM_API_KEY", "")
+        elif active_provider == "anthropic":
+            active_key = os.environ.get("ANTHROPIC_API_KEY", "") or os.environ.get("LLM_API_KEY", "")
         else:
-            cfg["api_key"] = os.environ.get("LLM_API_KEY", "")
-    return cfg
+            active_key = os.environ.get("LLM_API_KEY", "")
+            
+    # Return dict with flattened api_key for consumers
+    return {**cfg, "api_key": active_key}
 
 
 def save_llm_config(cfg: dict):
@@ -362,30 +377,64 @@ class LlmConfigUpdate(BaseModel):
 @app.get("/api/llm/config")
 def get_llm_config():
     cfg = load_llm_config()
+    
+    # Generate status for all known providers
+    providers = ["anthropic", "nvidia", "openai"]
+    key_status = {}
+    for p in providers:
+        key = cfg["keys"].get(p)
+        # Check env var fallback if no saved key
+        if not key:
+            if p == "nvidia":
+                key = os.environ.get("KIMI_API_KEY", "") or os.environ.get("LLM_API_KEY", "")
+            elif p == "anthropic":
+                key = os.environ.get("ANTHROPIC_API_KEY", "") or os.environ.get("LLM_API_KEY", "")
+            else:
+                key = os.environ.get("LLM_API_KEY", "")
+        
+        key_status[p] = {
+            "hasKey": bool(key),
+            "hint": redact_key(key) if key else ""
+        }
+
     return {
         "provider": cfg.get("provider", "anthropic"),
         "model": cfg.get("model", "claude-haiku-4-5-20251001"),
-        "keyHint": redact_key(cfg.get("api_key", "")),
-        "hasKey": bool(cfg.get("api_key")),
+        "keyStatus": key_status,
         "models": cfg.get("models", DEFAULT_LLM_CONFIG["models"]),
     }
 
 
 @app.post("/api/llm/config")
 def update_llm_config(body: LlmConfigUpdate):
-    cfg = load_llm_config()
+    # Load raw config to write to it
+    if LLM_CONFIG_PATH.exists():
+        try:
+            cfg = json.loads(LLM_CONFIG_PATH.read_text())
+        except:
+            cfg = dict(DEFAULT_LLM_CONFIG)
+    else:
+        cfg = dict(DEFAULT_LLM_CONFIG)
+        
+    if "keys" not in cfg:
+        cfg["keys"] = {}
+
     if body.provider is not None:
         cfg["provider"] = body.provider
     if body.model is not None:
         cfg["model"] = body.model
+        
+    # If API key provided, save it for the *current* (or specified) provider
     if body.api_key is not None:
-        cfg["api_key"] = body.api_key
+        target_provider = body.provider or cfg.get("provider", "anthropic")
+        cfg["keys"][target_provider] = body.api_key
+
     save_llm_config(cfg)
+    
     return {
         "success": True,
-        "provider": cfg["provider"],
-        "model": cfg["model"],
-        "hasKey": bool(cfg.get("api_key")),
+        "provider": cfg.get("provider"),
+        "model": cfg.get("model"),
     }
 
 # --- WebSocket ---

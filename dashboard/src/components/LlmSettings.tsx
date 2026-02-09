@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button"
 interface LlmConfig {
   provider: string
   model: string
-  keyHint: string
-  hasKey: boolean
+  keyStatus: Record<string, { hasKey: boolean; hint: string }>
   models: Record<string, string[]>
 }
 
@@ -43,9 +42,10 @@ export default function LlmSettings({ aiRunning }: LlmSettingsProps) {
 
   const availableModels = config?.models?.[provider] ?? []
 
-  // When provider changes, reset model to first available
+  // When provider changes, reset model to first available and clear input
   function handleProviderChange(newProvider: string) {
     setProvider(newProvider)
+    setApiKey("") // Clear input so we don't save old key to new provider
     const models = config?.models?.[newProvider] ?? []
     if (models.length > 0 && !models.includes(model)) {
       setModel(models[0])
@@ -63,14 +63,22 @@ export default function LlmSettings({ aiRunning }: LlmSettingsProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       })
+      // Refresh config to get new key status
+      const res = await fetch("/api/llm/config")
+      const newCfg = await res.json()
+      setConfig(newCfg)
+
+      setApiKey("")
       setDirty(false)
-      setOpen(false)
+      // Don't close, let user see it saved
     } catch {
       // ignore
     } finally {
       setSaving(false)
     }
   }
+
+  const currentKeyStatus = config?.keyStatus?.[provider]
 
   return (
     <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
@@ -132,7 +140,7 @@ export default function LlmSettings({ aiRunning }: LlmSettingsProps) {
                   type={showKey ? "text" : "password"}
                   value={apiKey}
                   onChange={(e) => { setApiKey(e.target.value); setDirty(true) }}
-                  placeholder={config?.hasKey ? `Current: ${config.keyHint}` : "Enter API key"}
+                  placeholder={currentKeyStatus?.hasKey ? `Current: ${currentKeyStatus.hint}` : `Enter ${provider === 'nvidia' ? 'NVIDIA' : provider === 'anthropic' ? 'Anthropic' : 'API'} key`}
                   className="w-full rounded-md border border-border bg-background px-2 py-1.5 pr-8 text-sm font-mono"
                 />
                 <button
