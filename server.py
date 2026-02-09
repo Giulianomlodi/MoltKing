@@ -13,7 +13,8 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-import requests
+import httpx
+import logging
 from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from fastapi.staticfiles import StaticFiles
@@ -122,6 +123,8 @@ class ProcessManager:
         self.ai_proc: Optional[subprocess.Popen] = None
         self.bot_start_time: Optional[float] = None
         self.ai_start_time: Optional[float] = None
+        self.bot_pid_v: Optional[int] = None
+        self.ai_pid_v: Optional[int] = None
         self._load_pids()
 
     def _load_pids(self):
@@ -269,14 +272,23 @@ pm = ProcessManager()
 
 # --- Discordia API helpers ---
 
-def discordia_get(path: str, params: dict = None) -> dict:
+async def discordia_get(path: str, params: dict = None, client: httpx.AsyncClient = None) -> dict:
     try:
-        r = requests.get(
-            f"{DISCORDIA_API}{path}",
-            headers={"X-API-Key": DISCORDIA_KEY},
-            params=params,
-            timeout=5,
-        )
+        if client:
+            r = await client.get(
+                f"{DISCORDIA_API}{path}",
+                headers={"X-API-Key": DISCORDIA_KEY},
+                params=params,
+                timeout=5,
+            )
+        else:
+            async with httpx.AsyncClient() as c:
+                r = await c.get(
+                    f"{DISCORDIA_API}{path}",
+                    headers={"X-API-Key": DISCORDIA_KEY},
+                    params=params,
+                    timeout=5,
+                )
         return r.json()
     except Exception as e:
         return {"success": False, "error": str(e)}
@@ -304,8 +316,8 @@ def ai_stop():
     return pm.stop_ai()
 
 @app.get("/api/game/state")
-def game_state():
-    return discordia_get("/game/state")
+async def game_state():
+    return await discordia_get("/game/state")
 
 @app.get("/api/strategy/params")
 def strategy_params():
@@ -329,8 +341,8 @@ def strategy_log(limit: int = Query(50)):
         return []
 
 @app.get("/api/chat")
-def chat(limit: int = Query(20)):
-    return discordia_get("/chat/messages", {"limit": limit})
+async def chat(limit: int = Query(20)):
+    return await discordia_get("/chat/messages", {"limit": limit})
 
 
 # --- LLM config endpoints ---
@@ -414,110 +426,113 @@ async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
     active_websockets.append(ws)
     watcher = LogWatcher()
-    try:
-        while True:
-            # Build state message
-            llm_cfg = load_llm_config()
-            state_data = {
-                **pm.status(),
-                "llmConfig": {
-                    "provider": llm_cfg.get("provider", "anthropic"),
-                    "model": llm_cfg.get("model", ""),
-                    "hasKey": bool(llm_cfg.get("api_key")),
-                },
-            }
-            # Fetch game state
-            try:
-                gs = discordia_get("/game/state")
-                if gs.get("success") and gs.get("data"):
-                    d = gs["data"]
-                    state_data["tick"] = d.get("tick")
-                    state_data["agent"] = d.get("agent")
-                    units = d.get("myUnits", [])
-                    state_data["units"] = {
-                        "workers": len([u for u in units if u.get("type") == "worker"]),
-                        "soldiers": len([u for u in units if u.get("type") == "soldier"]),
-                        "healers": len([u for u in units if u.get("type") == "healer"]),
-                        "total": len(units),
-                    }
-                    structs = d.get("myStructures", [])
-                    spawns = [s for s in structs if s.get("type") == "spawn"]
-                    state_data["structures"] = {
-                        "spawns": len(spawns),
-                        "towers": len([s for s in structs if s.get("type") == "tower"]),
-                        "storages": len([s for s in structs if s.get("type") == "storage"]),
-                        "spawnEnergy": sum(s.get("energy", 0) for s in spawns),
-                    }
-                    # Threats from visible chunks
-                    enemy_units = []
-                    for chunk in d.get("visibleChunks", []):
-                        for u in chunk.get("units", []):
-                            if u.get("ownerId") and u["ownerId"] != d.get("agent", {}).get("id"):
-                                enemy_units.append(u)
-                    state_data["threats"] = {
-                        "enemyUnits": len(enemy_units),
-                    }
-                    # Map data for LiveMap
-                    state_data["mapChunks"] = d.get("visibleChunks", [])
-            except Exception:
-                pass
-
-            # Read current params
-            try:
-                state_data["params"] = json.loads(STRATEGY_PARAMS.read_text())
-            except Exception:
-                state_data["params"] = {}
-
-            # Include human suggestion
-            state_data["humanSuggestion"] = load_suggestion()
-
-            # Fetch recent chat messages
-            try:
-                chat_resp = discordia_get("/chat/messages", {"limit": 30})
-                if chat_resp.get("success"):
-                    state_data["chatMessages"] = chat_resp.get("data", [])
-                else:
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            while True:
+                # Build state message
+                llm_cfg = load_llm_config()
+                state_data = {
+                    **pm.status(),
+                    "llmConfig": {
+                        "provider": llm_cfg.get("provider", "anthropic"),
+                        "model": llm_cfg.get("model", ""),
+                        "hasKey": bool(llm_cfg.get("api_key")),
+                    },
+                }
+                
+                # Fetch data in parallel to avoid blocking
+                gs_task = discordia_get("/game/state", client=client)
+                chat_task = discordia_get("/chat/messages", {"limit": 30}, client=client)
+                
+                try:
+                    gs, chat_resp = await asyncio.gather(gs_task, chat_task, return_exceptions=True)
+                    
+                    if isinstance(gs, dict) and gs.get("success") and gs.get("data"):
+                        d = gs["data"]
+                        state_data["tick"] = d.get("tick")
+                        state_data["agent"] = d.get("agent")
+                        units = d.get("myUnits", [])
+                        state_data["units"] = {
+                            "workers": len([u for u in units if u.get("type") == "worker"]),
+                            "soldiers": len([u for u in units if u.get("type") == "soldier"]),
+                            "healers": len([u for u in units if u.get("type") == "healer"]),
+                            "total": len(units),
+                        }
+                        structs = d.get("myStructures", [])
+                        spawns = [s for s in structs if s.get("type") == "spawn"]
+                        state_data["structures"] = {
+                            "spawns": len(spawns),
+                            "towers": len([s for s in structs if s.get("type") == "tower"]),
+                            "storages": len([s for s in structs if s.get("type") == "storage"]),
+                            "spawnEnergy": sum(s.get("energy", 0) for s in spawns),
+                        }
+                        # Threats from visible chunks
+                        enemy_units = []
+                        for chunk in d.get("visibleChunks", []):
+                            for u in chunk.get("units", []):
+                                if u.get("ownerId") and u["ownerId"] != d.get("agent", {}).get("id"):
+                                    enemy_units.append(u)
+                        state_data["threats"] = {
+                            "enemyUnits": len(enemy_units),
+                        }
+                        # Map data for LiveMap
+                        state_data["mapChunks"] = d.get("visibleChunks", [])
+                    
+                    if isinstance(chat_resp, dict) and chat_resp.get("success"):
+                        state_data["chatMessages"] = chat_resp.get("data", [])
+                    else:
+                        state_data["chatMessages"] = []
+                        
+                except Exception as e:
                     state_data["chatMessages"] = []
-            except Exception:
-                state_data["chatMessages"] = []
 
-            await ws.send_json({"type": "state", "data": state_data})
+                # Read current params (this is fast disk read, keeping synchronous for now)
+                try:
+                    state_data["params"] = json.loads(STRATEGY_PARAMS.read_text())
+                except Exception:
+                    state_data["params"] = {}
 
-            # Check for new log entries
-            new_entries = watcher.check_new_entries()
-            for entry in new_entries:
-                await ws.send_json({"type": "log_entry", "data": entry})
+                # Include human suggestion
+                state_data["humanSuggestion"] = load_suggestion()
 
-            # Also listen for incoming commands (non-blocking)
-            try:
-                msg = await asyncio.wait_for(ws.receive_json(), timeout=3.0)
-                cmd = msg.get("type")
-                if cmd == "bot_start":
-                    pm.start_bot(msg.get("turns", 9999))
-                elif cmd == "bot_stop":
-                    pm.stop_bot()
-                elif cmd == "ai_start":
-                    pm.start_ai()
-                elif cmd == "ai_stop":
-                    pm.stop_ai()
-                elif cmd == "human_suggestion":
-                    text = msg.get("suggestion", "").strip()
-                    if text:
-                        save_suggestion(text)
-                elif cmd == "clear_suggestion":
-                    clear_suggestion()
-            except asyncio.TimeoutError:
-                pass
-            
-            await asyncio.sleep(1)
+                await ws.send_json({"type": "state", "data": state_data})
 
-    except WebSocketDisconnect:
-        pass
-    except Exception:
-        pass
-    finally:
-        if ws in active_websockets:
-            active_websockets.remove(ws)
+                # Check for new log entries
+                new_entries = watcher.check_new_entries()
+                for entry in new_entries:
+                    await ws.send_json({"type": "log_entry", "data": entry})
+
+                # Also listen for incoming commands (non-blocking)
+                try:
+                    msg = await asyncio.wait_for(ws.receive_json(), timeout=1.0)
+                    cmd = msg.get("type")
+                    if cmd == "bot_start":
+                        pm.start_bot(msg.get("turns", 9999))
+                    elif cmd == "bot_stop":
+                        pm.stop_bot()
+                    elif cmd == "ai_start":
+                        pm.start_ai()
+                    elif cmd == "ai_stop":
+                        pm.stop_ai()
+                    elif cmd == "human_suggestion":
+                        text = msg.get("suggestion", "").strip()
+                        if text:
+                            save_suggestion(text)
+                    elif cmd == "clear_suggestion":
+                        clear_suggestion()
+                except asyncio.TimeoutError:
+                    pass
+                
+                await asyncio.sleep(1)
+
+        except WebSocketDisconnect:
+            pass
+        except Exception:
+            pass
+        finally:
+            if ws in active_websockets:
+                active_websockets.remove(ws)
 
 # --- Debug Endpoints ---
 
