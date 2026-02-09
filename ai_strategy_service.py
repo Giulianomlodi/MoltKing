@@ -1165,6 +1165,7 @@ Respond with ONLY the JSON, no other text."""
                         "top_p": 1.0
                     }
 
+                print(f"  Requesting NVIDIA analysis (key len: {len(self.openai_client.api_key)})...")
                 response = self.openai_client.chat.completions.create(
                     model=self.model,
                     max_tokens=16384 if self.provider == "nvidia" else 1024,
@@ -1174,7 +1175,17 @@ Respond with ONLY the JSON, no other text."""
                     ],
                     extra_body=extra_body if extra_body else None
                 )
-                content = response.choices[0].message.content.strip()
+                
+                msg = response.choices[0].message
+                content = msg.content
+                if content is None:
+                    # Fallback to reasoning or empty if thinking didn't finish
+                    print(f"  WARNING: Content is None. Finish reason: {response.choices[0].finish_reason}")
+                    # Try to extract reasoning if available (NVIDIA specific?)
+                    # But if we have no content, we can't parse JSON.
+                    raise ValueError("Model returned no content (likely thinking timeout)")
+                    
+                content = content.strip()
                 if "```json" in content:
                     content = content.split("```json")[1].split("```")[0].strip()
                 elif "```" in content:
