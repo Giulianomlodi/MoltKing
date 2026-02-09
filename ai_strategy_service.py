@@ -1177,13 +1177,22 @@ Respond with ONLY the JSON, no other text."""
                     content = content.split("```")[1].split("```")[0].strip()
                 return json.loads(content)
             except Exception as e:
-                is_timeout = "timeout" in str(e).lower() or "504" in str(e)
-                if is_timeout and attempt < max_retries:
-                    print(f"  AI analysis attempt {attempt+1} failed ({e}), retrying...")
-                    time.sleep(2 * (attempt + 1))
+                err_str = str(e).lower()
+                is_retryable = (
+                    "timeout" in err_str or 
+                    "504" in err_str or 
+                    "connection" in err_str or 
+                    "network" in err_str or
+                    "rate limit" in err_str
+                )
+                
+                if is_retryable and attempt < max_retries:
+                    wait_sec = 2 * (attempt + 1)
+                    print(f"  AI analysis attempt {attempt+1} failed ({e}), retrying in {wait_sec}s...")
+                    time.sleep(wait_sec)
                     continue
                 
-                print(f"OpenAI analysis error: {e}")
+                print(f"AI analysis failed permanently: {e}")
                 return {
                     "situation_assessment": "Analysis failed",
                     "threat_level": "unknown",
