@@ -13,13 +13,21 @@ export default function StrategyEvolution({ logs }: StrategyEvolutionProps) {
   // Logs come newest-first, reverse for charts
   const chronological = [...logs].reverse()
 
-  const paramData = chronological.map((e, i) => ({
-    idx: i,
-    tick: e.state.tick,
-    worker_cap: e.analysis.recommendations?.worker_cap as number | undefined,
-    soldier_cap: e.analysis.recommendations?.soldier_cap as number | undefined,
-    tower_cap: e.analysis.recommendations?.tower_cap as number | undefined,
-  }))
+  let lastRecs: Record<string, any> = {}
+
+  const paramData = chronological.map((e, i) => {
+    const recs = e.analysis.recommendations
+    if (recs && Object.keys(recs).length > 0) {
+      lastRecs = { ...recs }
+    }
+    return {
+      idx: i,
+      tick: e.state.tick,
+      worker_cap: lastRecs.worker_cap as number | undefined,
+      soldier_cap: lastRecs.soldier_cap as number | undefined,
+      tower_cap: lastRecs.tower_cap as number | undefined,
+    }
+  })
 
   const unitData = chronological.map((e, i) => ({
     idx: i,
@@ -36,11 +44,19 @@ export default function StrategyEvolution({ logs }: StrategyEvolutionProps) {
     sourceEnergy: Math.round((e.state.economy?.total_source_energy ?? 0) / 100),
   }))
 
-  const modeData = chronological.map((e, i) => ({
-    idx: i,
-    tick: e.state.tick,
-    mode: (e.analysis.recommendations?.priority_mode as string) || "balanced",
-  }))
+  // Also reset for modeData
+  let lastMode = "balanced"
+  const modeData = chronological.map((e, i) => {
+    const mode = e.analysis.recommendations?.priority_mode as string
+    if (mode) {
+      lastMode = mode
+    }
+    return {
+      idx: i,
+      tick: e.state.tick,
+      mode: lastMode,
+    }
+  })
 
   const tickFormatter = (idx: number) => {
     const d = paramData[idx]

@@ -995,7 +995,11 @@ class AIStrategyAdvisor:
         self.model = model
         if provider == "nvidia":
             from openai import OpenAI
-            self.openai_client = OpenAI(api_key=api_key, base_url="https://integrate.api.nvidia.com/v1")
+            self.openai_client = OpenAI(
+                api_key=api_key, 
+                base_url="https://integrate.api.nvidia.com/v1",
+                timeout=45.0
+            )
             self.anthropic_client = None
         elif provider == "openai":
             from openai import OpenAI
@@ -1150,36 +1154,44 @@ Respond with ONLY the JSON, no other text."""
             "Analyze game state and return JSON recommendations."
         )
 
-        try:
-            extra_body = {}
-            if self.provider == "nvidia":
-                extra_body = {"chat_template_kwargs": {"thinking": True}}
+        max_retries = 2
+        for attempt in range(max_retries + 1):
+            try:
+                extra_body = {}
+                if self.provider == "nvidia":
+                    extra_body = {"chat_template_kwargs": {"thinking": True}}
 
-            response = self.openai_client.chat.completions.create(
-                model=self.model,
-                max_tokens=16384 if self.provider == "nvidia" else 1024,
-                messages=[
-                    {"role": "system", "content": system_msg},
-                    {"role": "user", "content": prompt},
-                ],
-                extra_body=extra_body if extra_body else None
-            )
-            content = response.choices[0].message.content.strip()
-            if "```json" in content:
-                content = content.split("```json")[1].split("```")[0].strip()
-            elif "```" in content:
-                content = content.split("```")[1].split("```")[0].strip()
-            return json.loads(content)
-        except Exception as e:
-            print(f"OpenAI analysis error: {e}")
-            return {
-                "situation_assessment": "Analysis failed",
-                "threat_level": "unknown",
-                "economy_status": "unknown",
-                "recommendations": {},
-                "reasoning": str(e),
-                "immediate_actions": [],
-            }
+                response = self.openai_client.chat.completions.create(
+                    model=self.model,
+                    max_tokens=2048 if self.provider == "nvidia" else 1024,
+                    messages=[
+                        {"role": "system", "content": system_msg},
+                        {"role": "user", "content": prompt},
+                    ],
+                    extra_body=extra_body if extra_body else None
+                )
+                content = response.choices[0].message.content.strip()
+                if "```json" in content:
+                    content = content.split("```json")[1].split("```")[0].strip()
+                elif "```" in content:
+                    content = content.split("```")[1].split("```")[0].strip()
+                return json.loads(content)
+            except Exception as e:
+                is_timeout = "timeout" in str(e).lower() or "504" in str(e)
+                if is_timeout and attempt < max_retries:
+                    print(f"  AI analysis attempt {attempt+1} failed ({e}), retrying...")
+                    time.sleep(2 * (attempt + 1))
+                    continue
+                
+                print(f"OpenAI analysis error: {e}")
+                return {
+                    "situation_assessment": "Analysis failed",
+                    "threat_level": "unknown",
+                    "economy_status": "unknown",
+                    "recommendations": {},
+                    "reasoning": str(e),
+                    "immediate_actions": [],
+                }
 
     # ── Helpers ──
 
@@ -1379,6 +1391,10 @@ class StrategyService:
 
         # Log
         self.log_analysis(summary, analysis)
+        if "error" in analysis:
+            print(f"  Analysis failed: {analysis['error']}")
+        elif analysis.get("situation_assessment") == "Analysis failed":
+             print(f"  Analysis failed: {analysis.get('reasoning')}")
         return analysis
 
     def _run_anthropic(self, summary: dict, chat_log: str) -> dict:
